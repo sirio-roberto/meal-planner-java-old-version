@@ -3,13 +3,14 @@ package mealplanner;
 import mealplanner.model.Ingredient;
 import mealplanner.model.Meal;
 import mealplanner.model.enums.Category;
+import mealplanner.utils.InputValidator;
 
 import java.util.*;
 
 public class Main {
     static Scanner scan = new Scanner(System.in);
 
-    static HashSet<Meal> meals = new HashSet<>();
+    static HashSet<Meal> meals = new LinkedHashSet<>();
 
     public static void main(String[] args) {
         showMainMenu();
@@ -51,15 +52,25 @@ public class Main {
     private static void addMeal() {
         System.out.println("Which meal do you want to add (breakfast, lunch, dinner)?");
         String categoryName = scan.nextLine();
+        while (!InputValidator.isValidCategoryName(categoryName)) {
+            categoryName = scan.nextLine();
+        }
         Category category = Category.getCategoryByValue(categoryName);
 
         System.out.println("Input the meal's name:");
         String mealName = scan.nextLine();
+        while (!InputValidator.isValidName(mealName)) {
+            mealName = scan.nextLine();
+        }
 
         System.out.println("Input the ingredients:");
-        String[] ingredientsStr = scan.nextLine().split(", ");
+        String[] ingredientsStr = scan.nextLine().split(",");
+        while (!InputValidator.areAllValidNames(ingredientsStr)) {
+            ingredientsStr = scan.nextLine().split(",");
+        }
 
         List<Ingredient> ingredients = Arrays.stream(ingredientsStr)
+                .map(String::trim)
                 .map(Ingredient::new)
                 .toList();
 
