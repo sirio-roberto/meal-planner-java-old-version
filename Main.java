@@ -12,10 +12,11 @@ import java.util.*;
 public class Main {
     static Scanner scan = new Scanner(System.in);
 
-    static HashSet<Meal> meals = new LinkedHashSet<>();
+    static HashSet<Meal> meals;
 
     public static void main(String[] args) {
         DBUtil.createRequiredTables();
+        meals = DBUtil.getAllMeals();
         showMainMenu();
     }
 
@@ -79,6 +80,15 @@ public class Main {
 
         Meal meal = new Meal(mealName, category, ingredients);
         meals.add(meal);
+
+        DBUtil.insertIntoMeals(meal);
+        insertIngredientsToDB(ingredients, meal);
+
         System.out.println("The meal has been added!");
+    }
+
+    private static void insertIngredientsToDB(List<Ingredient> ingredients, Meal linkedMeal) {
+        ingredients.forEach(i -> i.setMealId(linkedMeal.getId()));
+        ingredients.forEach(DBUtil::insertIntoIngredients);
     }
 }

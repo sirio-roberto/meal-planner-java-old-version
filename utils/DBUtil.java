@@ -5,10 +5,7 @@ import mealplanner.model.Ingredient;
 import mealplanner.model.Meal;
 import mealplanner.model.enums.Category;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,14 +15,14 @@ public class DBUtil {
 
     static final String CREATE_MEALS = """
                     CREATE TABLE IF NOT EXISTS meals (
-                        meal_id serial PRIMARY KEY, 
+                        meal_id integer, 
                         meal varchar(50), 
                         category varchar(20) 
                     );""";
 
     static final String CREATE_INGREDIENTS = """
                     CREATE TABLE IF NOT EXISTS ingredients (
-                        ingredient_id serial PRIMARY KEY, 
+                        ingredient_id integer, 
                         ingredient varchar(50), 
                         meal_id integer 
                     );""";
@@ -34,7 +31,9 @@ public class DBUtil {
 
     static final String SELECT_INGREDIENTS = "SELECT * FROM ingredients;";
 
-    static final String INSERT_MEALS = "SELECT * FROM ingredients;";
+    static final String INSERT_MEALS = "INSERT INTO meals (meal, category) VALUES (?, ?);";
+
+    static final String INSERT_INGREDIENTS = "INSERT INTO ingredients (ingredient, meal_id) VALUES (?, ?);";
 
     static Connection conn;
     public static void createRequiredTables() {
@@ -48,7 +47,7 @@ public class DBUtil {
         Statement st = null;
         try  {
             st = conn.createStatement();
-            st.executeQuery(CREATE_MEALS);
+            st.executeUpdate(CREATE_MEALS);
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         } finally {
@@ -60,7 +59,7 @@ public class DBUtil {
         Statement st = null;
         try  {
             st = conn.createStatement();
-            st.executeQuery(CREATE_INGREDIENTS);
+            st.executeUpdate(CREATE_INGREDIENTS);
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         } finally {
@@ -68,7 +67,7 @@ public class DBUtil {
         }
     }
 
-    public HashSet<Meal> getAllMeals() {
+    public static HashSet<Meal> getAllMeals() {
         HashSet<Meal> meals = new LinkedHashSet<>();
         HashSet<Ingredient> ingredients = getAllIngredients();
         Statement st = null;
@@ -98,8 +97,8 @@ public class DBUtil {
         return meals;
     }
 
-    private HashSet<Ingredient> getAllIngredients() {
-        HashSet<Ingredient> ingredients = new HashSet<>();
+    private static HashSet<Ingredient> getAllIngredients() {
+        HashSet<Ingredient> ingredients = new LinkedHashSet<>();
         Statement st = null;
         ResultSet rs = null;
         try {
@@ -122,7 +121,47 @@ public class DBUtil {
         return ingredients;
     }
 
-    public void insertIntoMeals(Meal meal) {
+    public static void insertIntoMeals(Meal meal) {
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement(INSERT_MEALS, Statement.RETURN_GENERATED_KEYS);
+            st.setString(1, meal.getName());
+            st.setString(2, meal.getCategory().getValue());
 
+            st.executeUpdate();
+            rs = st.getGeneratedKeys();
+            if (rs.next()) {
+                meal.setId(rs.getInt("meal_id"));
+            }
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            Database.closeResultSet(rs);
+            Database.closeStatement(st);
+        }
+    }
+
+    public static void insertIntoIngredients(Ingredient ingredient) {
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement(INSERT_INGREDIENTS, Statement.RETURN_GENERATED_KEYS);
+            st.setString(1, ingredient.getName());
+            if (ingredient.getMealId() != null) {
+                st.setInt(2, ingredient.getMealId());
+            }
+
+            st.executeUpdate();
+            rs = st.getGeneratedKeys();
+            if (rs.next()) {
+                ingredient.setId(rs.getInt("ingredient_id"));
+            }
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            Database.closeResultSet(rs);
+            Database.closeStatement(st);
+        }
     }
 }
