@@ -19,7 +19,7 @@ public class Meal implements Serializable {
         this.ingredients = ingredients;
     }
 
-    public Meal(String name, Category category, List<Ingredient> ingredients, Integer id) {
+    public Meal(Integer id, String name, Category category, List<Ingredient> ingredients) {
         this(name, category, ingredients);
         this.id = id;
     }
