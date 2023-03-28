@@ -3,8 +3,10 @@ package mealplanner;
 import mealplanner.model.Ingredient;
 import mealplanner.model.Meal;
 import mealplanner.model.enums.Category;
+import mealplanner.utils.DBUtil;
 import mealplanner.utils.InputValidator;
 
+import java.sql.Connection;
 import java.util.*;
 
 public class Main {
@@ -13,6 +15,7 @@ public class Main {
     static HashSet<Meal> meals = new LinkedHashSet<>();
 
     public static void main(String[] args) {
+        DBUtil.createRequiredTables();
         showMainMenu();
     }
 

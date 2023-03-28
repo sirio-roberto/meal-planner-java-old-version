@@ -2,9 +2,12 @@ package mealplanner.model;
 
 import mealplanner.model.enums.Category;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Meal {
+public class Meal implements Serializable {
+
+    private Integer id;
     private String name;
 
     private Category category;
@@ -14,6 +17,11 @@ public class Meal {
         this.name = name;
         this.category = category;
         this.ingredients = ingredients;
+    }
+
+    public Meal(String name, Category category, List<Ingredient> ingredients, Integer id) {
+        this(name, category, ingredients);
+        this.id = id;
     }
 
     public String getName() {
@@ -26,5 +34,13 @@ public class Meal {
 
     public Category getCategory() {
         return category;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 }

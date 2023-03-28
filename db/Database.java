@@ -52,11 +52,11 @@ public class Database {
     }
 
     private static Properties loadProperties() {
-        try (FileInputStream fs = new FileInputStream("db.properties")) {
+        try (FileInputStream fs = new FileInputStream("C:/temp/mealPlannerResources/db.properties")) {
             Properties props = new Properties();
             props.load(fs);
             return props;
-        } catch (IOException ex) {
+        }  catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
         return null;
