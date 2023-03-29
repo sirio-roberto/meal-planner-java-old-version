@@ -24,7 +24,7 @@ public class Main {
         String userOption;
 
         do {
-            System.out.println("What would you like to do (add, show, exit)?");
+            System.out.println("What would you like to do (add, show, plan, exit)?");
             userOption = scan.nextLine();
 
             switch (userOption) {

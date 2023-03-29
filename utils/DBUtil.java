@@ -3,6 +3,7 @@ package mealplanner.utils;
 import mealplanner.db.Database;
 import mealplanner.model.Ingredient;
 import mealplanner.model.Meal;
+import mealplanner.model.Plan;
 import mealplanner.model.enums.Category;
 
 import java.sql.*;
@@ -27,6 +28,19 @@ public class DBUtil {
                         meal_id integer 
                     );""";
 
+    static final String CREATE_PLAN = """
+                    CREATE TABLE IF NOT EXISTS plan (
+                        id serial PRIMARY KEY,
+                        weekday varchar(10),
+                        meal varchar(50), 
+                        meal_category varchar(20), 
+                        meal_id integer 
+                    );""";
+
+    static final String DELETE_PLAN = "DELETE FROM plan;";
+
+    static final String SELECT_PLANS = "SELECT * FROM plan;";
+
     static final String SELECT_MEALS = "SELECT * FROM meals;";
 
     static final String SELECT_MEALS_BY_CATEGORY = "SELECT * FROM meals WHERE category = ?;";
@@ -36,6 +50,8 @@ public class DBUtil {
     static final String INSERT_MEALS = "INSERT INTO meals (meal_id, meal, category) VALUES (?, ?, ?);";
 
     static final String INSERT_INGREDIENTS = "INSERT INTO ingredients (ingredient_id, ingredient, meal_id) VALUES (?, ?, ?);";
+
+    static final String INSERT_PLANS = "INSERT INTO plan (weekday, meal, meal_category, meal_id) VALUES (?, ?, ?, ?);";
 
     static Connection conn;
     public static void createRequiredTables() {
@@ -62,6 +78,30 @@ public class DBUtil {
         try  {
             st = conn.createStatement();
             st.executeUpdate(CREATE_INGREDIENTS);
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            Database.closeStatement(st);
+        }
+    }
+
+    public static void createPlanTable() {
+        Statement st = null;
+        try  {
+            st = conn.createStatement();
+            st.executeUpdate(CREATE_PLAN);
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            Database.closeStatement(st);
+        }
+    }
+
+    public static void deleteAllFromPlan() {
+        Statement st = null;
+        try  {
+            st = conn.createStatement();
+            st.executeUpdate(DELETE_PLAN);
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         } finally {
@@ -123,6 +163,33 @@ public class DBUtil {
         return ingredients;
     }
 
+    public static HashSet<Plan> getAllPlans() {
+        HashSet<Plan> plans = new HashSet<>();
+        HashSet<Meal> meals = getAllMeals();
+        Statement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.createStatement();
+            rs = st.executeQuery(SELECT_PLANS);
+            while (rs.next()) {
+                Integer id = rs.getInt("id");
+                Integer mealId = rs.getInt("meal_id");
+                String weekDay = rs.getString("weekDay");
+
+                Meal meal = meals.stream().filter(m -> mealId.equals(m.getId())).findAny().get();
+
+                Plan plan = new Plan(id, meal, weekDay);
+                plans.add(plan);
+            }
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            Database.closeResultSet(rs);
+            Database.closeStatement(st);
+        }
+        return plans;
+    }
+
     public static void insertIntoMeals(Meal meal) {
         PreparedStatement st = null;
         ResultSet rs = null;
@@ -139,6 +206,30 @@ public class DBUtil {
                 meal.setId(rs.getInt("meal_id"));
             }
             */
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            Database.closeResultSet(rs);
+            Database.closeStatement(st);
+        }
+    }
+
+    public static void insertIntoPlan(Plan plan) {
+        Meal meal = plan.getMeal();
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement(INSERT_PLANS, Statement.RETURN_GENERATED_KEYS);
+            st.setString(1, plan.getWeekDay());
+            st.setString(2, meal.getName());
+            st.setString(3, meal.getCategory().getValue());
+            st.setInt(4, meal.getId());
+
+            st.executeUpdate();
+            rs = st.getGeneratedKeys();
+            if (rs.next()) {
+                plan.setId(rs.getInt("id"));
+            }
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         } finally {

@@ -4,6 +4,7 @@ import mealplanner.model.enums.Category;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class Meal implements Serializable {
@@ -49,5 +50,18 @@ public class Meal implements Serializable {
     private Integer getRandomId() {
         Random random = new Random();
         return random.nextInt(1, 1000);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Meal meal = (Meal) o;
+        return Objects.equals(id, meal.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
