@@ -29,11 +29,13 @@ public class DBUtil {
 
     static final String SELECT_MEALS = "SELECT * FROM meals;";
 
+    static final String SELECT_MEALS_BY_CATEGORY = "SELECT * FROM meals WHERE category = ?;";
+
     static final String SELECT_INGREDIENTS = "SELECT * FROM ingredients;";
 
-    static final String INSERT_MEALS = "INSERT INTO meals (meal, category) VALUES (?, ?);";
+    static final String INSERT_MEALS = "INSERT INTO meals (meal_id, meal, category) VALUES (?, ?, ?);";
 
-    static final String INSERT_INGREDIENTS = "INSERT INTO ingredients (ingredient, meal_id) VALUES (?, ?);";
+    static final String INSERT_INGREDIENTS = "INSERT INTO ingredients (ingredient_id, ingredient, meal_id) VALUES (?, ?, ?);";
 
     static Connection conn;
     public static void createRequiredTables() {
@@ -126,14 +128,17 @@ public class DBUtil {
         ResultSet rs = null;
         try {
             st = conn.prepareStatement(INSERT_MEALS, Statement.RETURN_GENERATED_KEYS);
-            st.setString(1, meal.getName());
-            st.setString(2, meal.getCategory().getValue());
+            st.setInt(1, meal.getId());
+            st.setString(2, meal.getName());
+            st.setString(3, meal.getCategory().getValue());
 
             st.executeUpdate();
             rs = st.getGeneratedKeys();
+            /*
             if (rs.next()) {
                 meal.setId(rs.getInt("meal_id"));
             }
+            */
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         } finally {
@@ -147,15 +152,47 @@ public class DBUtil {
         ResultSet rs = null;
         try {
             st = conn.prepareStatement(INSERT_INGREDIENTS, Statement.RETURN_GENERATED_KEYS);
-            st.setString(1, ingredient.getName());
-            if (ingredient.getMealId() != null) {
-                st.setInt(2, ingredient.getMealId());
-            }
+            st.setInt(1, ingredient.getId());
+            st.setString(2, ingredient.getName());
+            st.setInt(3, ingredient.getMealId());
 
             st.executeUpdate();
             rs = st.getGeneratedKeys();
+            /*
             if (rs.next()) {
                 ingredient.setId(rs.getInt("ingredient_id"));
+            }
+             */
+        } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
+        } finally {
+            Database.closeResultSet(rs);
+            Database.closeStatement(st);
+        }
+    }
+
+    public static HashSet<Meal> getMealsByCategory(String providedCategory) {
+        HashSet<Meal> meals = new LinkedHashSet<>();
+        HashSet<Ingredient> ingredients = getAllIngredients();
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement(SELECT_MEALS_BY_CATEGORY);
+            st.setString(1, providedCategory);
+
+            rs = st.executeQuery();
+            while (rs.next()) {
+                Integer id = rs.getInt("meal_id");
+                String name = rs.getString("meal");
+                String categoryName = rs.getString("category");
+
+                Category category = Category.getCategoryByValue(categoryName);
+                List<Ingredient> mealIngredients = ingredients.stream()
+                        .filter(i -> Objects.equals(i.getMealId(), id))
+                        .toList();
+
+                Meal meal = new Meal(id, name, category, mealIngredients);
+                meals.add(meal);
             }
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
@@ -163,5 +200,6 @@ public class DBUtil {
             Database.closeResultSet(rs);
             Database.closeStatement(st);
         }
+        return meals;
     }
 }

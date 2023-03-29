@@ -1,6 +1,7 @@
 package mealplanner.model;
 
 import java.io.Serializable;
+import java.util.Random;
 
 public class Ingredient implements Serializable {
 
@@ -10,7 +11,14 @@ public class Ingredient implements Serializable {
     private Integer mealId;
 
     public Ingredient(String name) {
+        this.id = getRandomId();
         this.name = name;
+    }
+
+    public Ingredient(String name, Integer mealId) {
+        this.id = getRandomId();
+        this.name = name;
+        this.mealId = mealId;
     }
 
     public Ingredient(Integer id, String name, Integer mealId) {
@@ -37,5 +45,10 @@ public class Ingredient implements Serializable {
 
     public void setMealId(Integer mealId) {
         this.mealId = mealId;
+    }
+
+    private Integer getRandomId() {
+        Random random = new Random();
+        return random.nextInt(1, 1000);
     }
 }

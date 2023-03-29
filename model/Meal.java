@@ -4,6 +4,7 @@ import mealplanner.model.enums.Category;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Random;
 
 public class Meal implements Serializable {
 
@@ -17,6 +18,7 @@ public class Meal implements Serializable {
         this.name = name;
         this.category = category;
         this.ingredients = ingredients;
+        this.id = getRandomId();
     }
 
     public Meal(Integer id, String name, Category category, List<Ingredient> ingredients) {
@@ -42,5 +44,10 @@ public class Meal implements Serializable {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    private Integer getRandomId() {
+        Random random = new Random();
+        return random.nextInt(1, 1000);
     }
 }

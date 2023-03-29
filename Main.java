@@ -12,11 +12,11 @@ import java.util.*;
 public class Main {
     static Scanner scan = new Scanner(System.in);
 
-    static HashSet<Meal> meals;
+    static HashSet<Meal> meals = new LinkedHashSet<>();
 
     public static void main(String[] args) {
         DBUtil.createRequiredTables();
-        meals = DBUtil.getAllMeals();
+        // meals = DBUtil.getAllMeals();
         showMainMenu();
     }
 
@@ -37,10 +37,16 @@ public class Main {
     }
 
     private static void showMeals() {
+        System.out.println("Which category do you want to print (breakfast, lunch, dinner)?");
+        String categoryName = scan.nextLine();
+        while (!InputValidator.isValidCategoryName(categoryName)) {
+            categoryName = scan.nextLine();
+        }
+        meals = DBUtil.getMealsByCategory(categoryName);
         if (!meals.isEmpty()) {
+            System.out.printf("Category: %s%n", categoryName);
             System.out.println();
             for (Meal meal : meals) {
-                System.out.printf("Category: %s%n", meal.getCategory().getValue());
                 System.out.printf("Name: %s%n", meal.getName());
                 System.out.println("Ingredients:");
                 for (Ingredient ingredient : meal.getIngredients()) {
@@ -49,7 +55,7 @@ public class Main {
                 System.out.println();
             }
         } else {
-            System.out.println("No meals saved. Add a meal first.");
+            System.out.println("No meals found.");
         }
     }
 
