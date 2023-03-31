@@ -1,14 +1,17 @@
 package mealplanner.model.enums;
 
 public enum Category {
-    BREAKFAST("breakfast"),
-    LUNCH("lunch"),
-    DINNER("dinner");
+    BREAKFAST("breakfast", 0),
+    LUNCH("lunch", 1),
+    DINNER("dinner", 2);
 
     private final String value;
 
-    Category(String value) {
+    private Integer priority;
+
+    Category(String value, Integer priority) {
         this.value = value;
+        this.priority = priority;
     }
 
     public String getValue() {
@@ -31,5 +34,9 @@ public enum Category {
             }
         }
         return null;
+    }
+
+    public Integer getPriority() {
+        return priority;
     }
 }

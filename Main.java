@@ -9,7 +9,9 @@ import mealplanner.utils.DBUtil;
 import mealplanner.utils.InputValidator;
 import mealplanner.utils.StringUtils;
 
-import java.sql.Connection;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class Main {
@@ -21,7 +23,7 @@ public class Main {
 
     public static void main(String[] args) {
         DBUtil.createRequiredTables();
-        // meals = DBUtil.getAllMeals();
+        plans = DBUtil.getAllPlans();
         showMainMenu();
     }
 
@@ -29,20 +31,71 @@ public class Main {
         String userOption;
 
         do {
-            System.out.println("What would you like to do (add, show, plan, exit)?");
+            System.out.println("What would you like to do (add, show, plan, save, exit)?");
             userOption = scan.nextLine();
 
             switch (userOption) {
                 case "add" -> addMeal();
                 case "show" -> showMeals();
                 case "plan" -> planWeek();
+                case "save" -> saveShoppingList();
                 case "exit" -> System.out.println("Bye!");
             }
 
         } while (!"exit".equals(userOption));
     }
 
+    private static void saveShoppingList() {
+        if (!plans.isEmpty()) {
+            System.out.println("Input a filename:");
+            String filename = scan.nextLine();
+            String shoppingList = getShoppingList();
+
+            saveFileToTemp(filename, shoppingList);
+            System.out.println("Saved!");
+
+        } else {
+            System.out.println("Unable to save. Plan your meals first.");
+        }
+    }
+
+    private static String getShoppingList() {
+        List<String> allIngredients = plans.stream()
+                .map(Plan::getMeal)
+                .map(Meal::getIngredients)
+                .flatMap(Collection::stream)
+                .map(Ingredient::getName)
+                .toList();
+
+        HashSet<String> uniqueIngredients = new HashSet<>(allIngredients);
+        StringBuilder sb = new StringBuilder();
+        for (String s: uniqueIngredients) {
+            sb.append(s);
+
+            int quantity =  (int) allIngredients.stream().filter(i -> i.equals(s)).count();
+            if (quantity > 1) {
+                sb.append(" x").append(quantity);
+            }
+
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    private static void saveFileToTemp(String filename, String content) {
+        // String path = "C:/temp/mealPlannerResources/" + filename;
+        String path = filename;
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(path))) {
+            writer.write(content);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
     private static void planWeek() {
+        DBUtil.deleteAllFromPlan();
+        plans.clear();
         createPlans();
         showPlans();
     }
@@ -76,7 +129,8 @@ public class Main {
     private static void showPlans() {
         for (Weekday weekday: Weekday.values()) {
             System.out.println(weekday.getValue());
-            for(Plan subPlan: plans.stream().filter(p -> p.getWeekDay().equals(weekday.getValue())).toList()) {
+
+            for(Plan subPlan: plans.stream().filter(p -> p.getWeekDay().equals(weekday.getValue())).sorted().toList()) {
                 Meal meal = subPlan.getMeal();
                 System.out.printf("%s: %s%n",
                         StringUtils.convertToTitleCaseIteratingChars(meal.getCategory().getValue()),

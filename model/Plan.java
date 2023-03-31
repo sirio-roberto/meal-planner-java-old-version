@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Random;
 
-public class Plan implements Serializable {
+public class Plan implements Serializable, Comparable<Plan>{
 
     private Integer id;
 
@@ -45,5 +45,12 @@ public class Plan implements Serializable {
 
     public void setMeal(Meal meal) {
         this.meal = meal;
+    }
+
+    @Override
+    public int compareTo(Plan otherPlan) {
+        int thisCategoryPriority = this.meal.getCategory().getPriority();
+        int otherCategoryPriority = otherPlan.getMeal().getCategory().getPriority();
+        return Integer.compare(thisCategoryPriority, otherCategoryPriority);
     }
 }
