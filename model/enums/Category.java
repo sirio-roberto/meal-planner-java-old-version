@@ -5,7 +5,7 @@ public enum Category {
     LUNCH("lunch"),
     DINNER("dinner");
 
-    private String value;
+    private final String value;
 
     Category(String value) {
         this.value = value;

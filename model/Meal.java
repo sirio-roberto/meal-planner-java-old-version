@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
-public class Meal implements Serializable {
+public class Meal implements Serializable, Comparable<Meal> {
 
     private Integer id;
     private String name;
@@ -63,5 +63,10 @@ public class Meal implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public int compareTo(Meal other) {
+        return this.name.compareTo(other.getName());
     }
 }

@@ -59,6 +59,8 @@ public class DBUtil {
 
         createMealsTable();
         createIngredientsTable();
+        createPlanTable();
+        deleteAllFromPlan();
     }
 
     private static void createMealsTable() {

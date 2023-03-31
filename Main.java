@@ -2,9 +2,12 @@ package mealplanner;
 
 import mealplanner.model.Ingredient;
 import mealplanner.model.Meal;
+import mealplanner.model.Plan;
 import mealplanner.model.enums.Category;
+import mealplanner.model.enums.Weekday;
 import mealplanner.utils.DBUtil;
 import mealplanner.utils.InputValidator;
+import mealplanner.utils.StringUtils;
 
 import java.sql.Connection;
 import java.util.*;
@@ -13,6 +16,8 @@ public class Main {
     static Scanner scan = new Scanner(System.in);
 
     static HashSet<Meal> meals = new LinkedHashSet<>();
+
+    static HashSet<Plan> plans = new LinkedHashSet<>();
 
     public static void main(String[] args) {
         DBUtil.createRequiredTables();
@@ -30,10 +35,55 @@ public class Main {
             switch (userOption) {
                 case "add" -> addMeal();
                 case "show" -> showMeals();
+                case "plan" -> planWeek();
                 case "exit" -> System.out.println("Bye!");
             }
 
         } while (!"exit".equals(userOption));
+    }
+
+    private static void planWeek() {
+        createPlans();
+        showPlans();
+    }
+
+    private static void createPlans() {
+        for (Weekday weekday: Weekday.values()) {
+            System.out.println(weekday.getValue());
+            for (Category category: Category.values()) {
+                List<Meal> categoryMeals = DBUtil.getMealsByCategory(category.getValue()).stream().sorted().toList();
+                categoryMeals.forEach(m -> System.out.println(m.getName()));
+                System.out.printf("Choose the %s for %s from the list above:%n", category.getValue(), weekday.getValue());
+                String userChoice = scan.nextLine();
+
+                Meal chosenMeal = categoryMeals.stream()
+                        .filter(m -> m.getName().equals(userChoice)).findAny().orElse(null);
+                while (chosenMeal == null) {
+                    System.out.println("This meal doesn’t exist. Choose a meal from the list above.");
+                    final String finalUserChoice = scan.nextLine();
+                    chosenMeal = categoryMeals.stream()
+                            .filter(m -> m.getName().equals(finalUserChoice)).findAny().orElse(null);
+                }
+                Plan plan = new Plan(chosenMeal, weekday.getValue());
+                plans.add(plan);
+                DBUtil.insertIntoPlan(plan);
+            }
+            System.out.printf("Yeah! We planned the meals for %s.%n", weekday.getValue());
+            System.out.println();
+        }
+    }
+
+    private static void showPlans() {
+        for (Weekday weekday: Weekday.values()) {
+            System.out.println(weekday.getValue());
+            for(Plan subPlan: plans.stream().filter(p -> p.getWeekDay().equals(weekday.getValue())).toList()) {
+                Meal meal = subPlan.getMeal();
+                System.out.printf("%s: %s%n",
+                        StringUtils.convertToTitleCaseIteratingChars(meal.getCategory().getValue()),
+                        meal.getName());
+            }
+            System.out.println();
+        }
     }
 
     private static void showMeals() {
